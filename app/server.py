@@ -8,10 +8,8 @@ from PIL import Image
 from .pipeline import StainPipeline
 
 # Environment-configurable defaults
-# DEFAULT_MODEL_NAME = os.getenv("MODEL_NAME", None)
 DEFAULT_MODEL_PATH = os.getenv("MODEL_PATH", None)
-# if DEFAULT_MODEL_NAME and DEFAULT_MODEL_PATH:
-#     raise RuntimeError("Provide only one of MODEL_NAME or MODEL_PATH")
+
 
 app = FastAPI(title="CycleGAN-Turbo Server", version="1.1")
 
@@ -24,6 +22,12 @@ def get_pipeline():
             # pretrained_name=DEFAULT_MODEL_NAME,
             pretrained_path=DEFAULT_MODEL_PATH,
         )
+        try:
+            dummy = Image.new("RGB", (512, 512), (128, 128, 128))
+            _ = _pipeline.run(dummy, direction="a2b",
+                              prompt="patch from WSI of hematoxylin and eosin stain to be converted to patch of immunohistochemistry ER stain")
+        except Exception:
+            pass
     return _pipeline
 
 def _pil_to_png_bytes(img: Image.Image) -> bytes:
@@ -55,9 +59,7 @@ async def translate_json(
         raise HTTPException(status_code=400, detail="Invalid image file.")
 
     pipe = get_pipeline()
-    if model_path:
-        pipe = StainPipeline(pretrained_path=model_path)
-
+    
     try:
         out = pipe.run(img, direction=direction, prompt=prompt)
     except Exception as e:
@@ -90,9 +92,7 @@ async def translate_preview(
         raise HTTPException(status_code=400, detail="Invalid image file.")
 
     pipe = get_pipeline()
-    if model_path:
-        pipe = StainPipeline(pretrained_path=model_path)
-
+    
     try:
         out = pipe.run(img, direction=direction, prompt=prompt)
     except Exception as e:

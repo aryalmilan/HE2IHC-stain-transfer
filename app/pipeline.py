@@ -48,10 +48,7 @@ class StainPipeline:
             if self.device.startswith("cuda"):
                 torch.cuda.manual_seed_all(seed)
 
-        # The user's model supports two usage modes:
-        # - Pretrained model_name: does not require prompt/direction
-        # - Custom weights (pretrained_path): requires prompt and direction
-        # We'll pass through when provided.
+        
         out = self.model(img, direction=direction, caption=prompt)
         # Convert back to PIL
         if isinstance(out, torch.Tensor):
