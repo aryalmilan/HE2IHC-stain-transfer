@@ -1,6 +1,6 @@
 # HE2IHC Stain Transfer
 
-This project provides tools and pipelines for performing **stain transfer** between H&E (Hematoxylin & Eosin) and IHC (Immunohistochemistry) images using deep learning models. It includes training scripts, inference pipelines, and fast-api based deployment.
+This project provides tools and pipelines for performing **stain transfer** between H&E (Hematoxylin & Eosin) and IHC (Immunohistochemistry) images using diffusion based model. Stable diffusion XL is fine tuned using LoRA adapters.  It includes training scripts, inference pipelines, and fast-api based deployment.
 
 ---
 
