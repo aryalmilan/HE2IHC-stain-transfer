@@ -107,7 +107,7 @@ def initialize_vae(rank=4, return_lora_module_names=False):
 
 
 class StainTransfer(torch.nn.Module):
-    def __init__(self, pretrained_name=None, pretrained_path=None, ckpt_folder="checkpoints", lora_rank_unet=8, lora_rank_vae=4):
+    def __init__(self, pretrained_path=None, ckpt_folder="checkpoints", lora_rank_unet=8, lora_rank_vae=4):
         super().__init__()
         self.tokenizer = AutoTokenizer.from_pretrained("stabilityai/sd-turbo", subfolder="tokenizer")
         self.text_encoder = CLIPTextModel.from_pretrained("stabilityai/sd-turbo", subfolder="text_encoder").cuda()
@@ -123,37 +123,12 @@ class StainTransfer(torch.nn.Module):
         vae.decoder.skip_conv_4 = torch.nn.Conv2d(128, 256, kernel_size=(1, 1), stride=(1, 1), bias=False).cuda()
         vae.decoder.ignore_skip = False
         self.unet, self.vae = unet, vae
-        if pretrained_name == "day_to_night":
-            url = "https://www.cs.cmu.edu/~img2img-turbo/models/day2night.pkl"
-            self.load_ckpt_from_url(url, ckpt_folder)
-            self.timesteps = torch.tensor([999], device="cuda").long()
-            self.caption = "driving in the night"
-            self.direction = "a2b"
-        elif pretrained_name == "night_to_day":
-            url = "https://www.cs.cmu.edu/~img2img-turbo/models/night2day.pkl"
-            self.load_ckpt_from_url(url, ckpt_folder)
-            self.timesteps = torch.tensor([999], device="cuda").long()
-            self.caption = "driving in the day"
-            self.direction = "b2a"
-        elif pretrained_name == "clear_to_rainy":
-            url = "https://www.cs.cmu.edu/~img2img-turbo/models/clear2rainy.pkl"
-            self.load_ckpt_from_url(url, ckpt_folder)
-            self.timesteps = torch.tensor([999], device="cuda").long()
-            self.caption = "driving in heavy rain"
-            self.direction = "a2b"
-        elif pretrained_name == "rainy_to_clear":
-            url = "https://www.cs.cmu.edu/~img2img-turbo/models/rainy2clear.pkl"
-            self.load_ckpt_from_url(url, ckpt_folder)
-            self.timesteps = torch.tensor([999], device="cuda").long()
-            self.caption = "driving in the day"
-            self.direction = "b2a"
         
-        elif pretrained_path is not None:
-            sd = torch.load(pretrained_path)
-            self.load_ckpt_from_state_dict(sd)
-            self.timesteps = torch.tensor([999], device="cuda").long()
-            self.caption = None
-            self.direction = None
+        sd = torch.load(pretrained_path)
+        self.load_ckpt_from_state_dict(sd)
+        self.timesteps = torch.tensor([999], device="cuda").long()
+        self.caption = None
+        self.direction = None
 
         self.vae_enc.cuda()
         self.vae_dec.cuda()

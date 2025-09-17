@@ -8,10 +8,10 @@ from PIL import Image
 from .pipeline import StainPipeline
 
 # Environment-configurable defaults
-DEFAULT_MODEL_NAME = os.getenv("MODEL_NAME", None)
+# DEFAULT_MODEL_NAME = os.getenv("MODEL_NAME", None)
 DEFAULT_MODEL_PATH = os.getenv("MODEL_PATH", None)
-if DEFAULT_MODEL_NAME and DEFAULT_MODEL_PATH:
-    raise RuntimeError("Provide only one of MODEL_NAME or MODEL_PATH")
+# if DEFAULT_MODEL_NAME and DEFAULT_MODEL_PATH:
+#     raise RuntimeError("Provide only one of MODEL_NAME or MODEL_PATH")
 
 app = FastAPI(title="CycleGAN-Turbo Server", version="1.1")
 
@@ -21,7 +21,7 @@ def get_pipeline():
     global _pipeline
     if _pipeline is None:
         _pipeline = StainPipeline(
-            pretrained_name=DEFAULT_MODEL_NAME,
+            # pretrained_name=DEFAULT_MODEL_NAME,
             pretrained_path=DEFAULT_MODEL_PATH,
         )
     return _pipeline
@@ -47,8 +47,7 @@ async def translate_json(
     direction = "a2b"
     prompt = "patch from WSI of hematoxylin and eosin stain to be converted to patch of immunohistochemistry ER stain",
     seed = 42,
-    # model_name: str | None = Form(None, description="Optional override of MODEL_NAME"),
-    model_name = None
+    
     try:
         raw = await image.read()
         img = Image.open(io.BytesIO(raw)).convert("RGB")
@@ -56,10 +55,8 @@ async def translate_json(
         raise HTTPException(status_code=400, detail="Invalid image file.")
 
     pipe = get_pipeline()
-    if model_name or model_path:
-        if model_name and model_path:
-            raise HTTPException(status_code=400, detail="Provide only one of model_name or model_path")
-        pipe = StainPipeline(pretrained_name=model_name, pretrained_path=model_path)
+    if model_path:
+        pipe = StainPipeline(pretrained_path=model_path)
 
     try:
         out = pipe.run(img, direction=direction, prompt=prompt)
@@ -72,7 +69,7 @@ async def translate_json(
         "meta": {
             "direction": direction,
             "seed": seed,
-            "used_model": model_name or model_path or DEFAULT_MODEL_NAME or DEFAULT_MODEL_PATH,
+            "used_model": model_path or DEFAULT_MODEL_PATH,
         }
     })
 
@@ -85,8 +82,7 @@ async def translate_preview(
     direction = "a2b"
     prompt = "patch from WSI of hematoxylin and eosin stain to be converted to patch of immunohistochemistry ER stain",
     seed = 42,
-    # model_name: str | None = Form(None, description="Optional override of MODEL_NAME"),
-    model_name = None
+    
     try:
         raw = await image.read()
         img = Image.open(io.BytesIO(raw)).convert("RGB")
@@ -94,10 +90,8 @@ async def translate_preview(
         raise HTTPException(status_code=400, detail="Invalid image file.")
 
     pipe = get_pipeline()
-    if model_name or model_path:
-        if model_name and model_path:
-            raise HTTPException(status_code=400, detail="Provide only one of model_name or model_path")
-        pipe = StainPipeline(pretrained_name=model_name, pretrained_path=model_path)
+    if model_path:
+        pipe = StainPipeline(pretrained_path=model_path)
 
     try:
         out = pipe.run(img, direction=direction, prompt=prompt)
@@ -106,7 +100,7 @@ async def translate_preview(
 
     input_data = _b64_png(img)
     output_data = _b64_png(out)
-    used_model = model_name or model_path or DEFAULT_MODEL_NAME or DEFAULT_MODEL_PATH
+    used_model = model_path or DEFAULT_MODEL_PATH
 
     html = f"""
 <!doctype html>

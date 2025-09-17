@@ -15,10 +15,10 @@ from stain_transfer import StainTransfer  # provided by user code
 from my_utils.training_utils import build_transform
 
 class StainPipeline:
-    def __init__(self, pretrained_name=None, pretrained_path=None, device=None):
+    def __init__(self, pretrained_path=None, device=None):
         self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
         # Initialize model (either HF name or local path)
-        self.model = StainTransfer(pretrained_name=pretrained_name, pretrained_path=pretrained_path)
+        self.model = StainTransfer(pretrained_path=pretrained_path)
         self.model.eval()
         try:
             # Not all builds have xformers; it's okay if this fails
